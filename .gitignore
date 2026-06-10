@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Brand run outputs (keep locally, not in repo)
+runs/
+
+# Large trace/evidence files
+**/*.json
+**/*.json.gz
+evidence/
+
+# Memory (local only)
+memory/
