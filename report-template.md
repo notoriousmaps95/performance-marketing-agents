@@ -1,7 +1,7 @@
 # {{BRAND}} — Performance Marketing & Social Audit
-*Region: {{MARKET}} · Data: public only · Preset: {{DTC|B2B}} · Date: {{DATE}}*
+*Region: {{MARKET}} · Data: public only · Preset: {{DTC|B2B|DTC+SEO|B2B+SEO|Local}} · SEO data tier: {{0|1|2|n/a}} · Date: {{DATE}}*
 
-> **This is the `00-executive-summary.md` skeleton.** The deep reports (`01`–`06`) reuse the §-blocks below as needed. Replace every `{{…}}`. Label all estimates `(est.)`.
+> **This is the `00-executive-summary.md` skeleton.** The deep reports (`01`–`08`) reuse the §-blocks below as needed — `07-seo-audit.md` and `08-local-seo-audit.md` carry their own /100 headline + mini-scorecard (7 and 6 dimension rows respectively). Replace every `{{…}}`. Label all estimates `(est.)`. **Scores are not comparable across presets** — say so when the preset is not `DTC`/`B2B`.
 
 ---
 
@@ -23,6 +23,8 @@ Two-to-three sentence verdict: where {{BRAND}} wins, where it bleeds, and the si
 | 8 | Funnel & conversion signals | {{w}} | {{s}} | {{ws}} | [link] |
 | 9 | Audience & targeting signals | {{w}} | {{s}} | {{ws}} | [link] |
 | 10 | Competitive share of voice | {{w}} | {{s}} | {{ws}} | [link] |
+| 11 | Organic search (SEO) *(SEO presets + Local only — omit row otherwise)* | {{w}} | {{s}} | {{ws}} | [07-seo-audit.md] |
+| 12 | Local search *(Local preset only — omit row otherwise)* | {{w}} | {{s}} | {{ws}} | [08-local-seo-audit.md] |
 | | **TOTAL** | **100** | | **{{XX}}** | |
 
 ## Competitive snapshot
@@ -34,6 +36,8 @@ Two-to-three sentence verdict: where {{BRAND}} wins, where it bleeds, and the si
 | Top organic platform (ER%) | | | | |
 | Posting cadence /wk | | | | |
 | Dominant offer | | | | |
+| Organic visibility (roundup/branded-SERP, est.) *(SEO/Local runs)* | | | | |
+| Local pack presence (core city-modifier queries) *(Local runs)* | | | | |
 
 ## Strengths
 - …

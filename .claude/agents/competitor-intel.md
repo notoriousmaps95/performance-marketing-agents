@@ -14,6 +14,7 @@ Apply the three collection lenses to this competitor (run them yourself or summa
 1. **Brand/store** (per `pm-brand-auditor` method): positioning, USP, offers, tech stack, funnel signals, LP speed.
 2. **Organic social** (per `social-content-auditor` method) for each platform: cadence, format mix, ER proxy, content pillars, top posts.
 3. **Paid** (per `ad-teardown` method) for each library: active-ad count, concepts, inferred winners, offers.
+4. **SEO snapshot** *(SEO/Local runs only — strictly bounded: max 2 page fetches, NO extra Lighthouse)*: title/meta quality on home + 1 money page, schema types present (JSON-LD scan of those 2 fetches), branded-SERP ownership note, SERP-overlap terms (reuse `traffic-sov` data — don't re-collect), and `local_pack_presence` when the run is Local (from `traffic-sov.local_pack_sov`).
 
 Then distil into a comparison-ready profile, highlighting where this competitor is **stronger or weaker than the brand** and any tactics worth copying or countering.
 
@@ -24,6 +25,8 @@ Then distil into a comparison-ready profile, highlighting where this competitor 
   positioning: { value_prop, usp, dominant_offer },
   social: [{ platform, followers, cadence_per_week, er_proxy_pct, top_pillars[] }],
   paid: [{ library, active_ad_count, top_concepts[], inferred_winners[] }],
+  seo_snapshot: { title_meta_quality, schema_types_found[], authority_proxy_note,
+                  serp_overlap_terms[], local_pack_presence },   // SEO/Local runs only, else null
   est_monthly_traffic, top_channel,
   vs_brand: { stronger_at[], weaker_at[], tactics_to_borrow[], threats[] },
   evidence: [{ label, url, date }]
