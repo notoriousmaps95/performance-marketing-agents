@@ -13,7 +13,7 @@
 | Social handles | ⬜ | Discover if not provided |
 | Weighting preset | ✅ | `DTC` (default) · `B2B` · `DTC+SEO` · `B2B+SEO` · `Local` — canonical weights live in **`presets.json`** (§2). Locked before the workflow launches; the workflow refuses `detect` |
 | Business type | ✅ | `detect` (default) · `ecom` · `leadgen_national` · `local`. On `detect`, `pm-brand-auditor` runs a **classification-only pass before the workflow launches** (Phase 0), maps to a preset via `presets.json → business_type_map` (incl. the +SEO-variant rule), and the orchestrator confirms with the user before locking weights |
-| Module flags | ⬜ | `presets.json → modules` defaults apply unless overridden: `ai_visibility` (on) · `compliance` (auto — regulated verticals) · `influencer` · `marketplace` · `seo_depth` · `strategy_depth` · `deck` · `mode: audit\|reaudit` (§4.3) |
+| Module flags | ⬜ | `presets.json → modules` defaults apply unless overridden: `ai_visibility` (on) · `compliance` (auto — regulated verticals) · `influencer` · `marketplace` · `seo_depth` · `strategy_depth` · `deck` (on) · `mode: audit\|reaudit` (§4.3) |
 | SEO data tier | ✅ | `0` (public-only, default) · `1` (+GSC) · `2` (+exports) — see §1.1. Recorded as `data_tier` in every output |
 | GSC property | ⬜ | Tier 1 only — **user-owned property only**, via `mcp__gsc__*` |
 | Exports dir | ⬜ | Tier 2 only — Ahrefs/Semrush CSVs + Screaming Frog exports dropped in `runs/<brand>/inputs/` |
@@ -237,7 +237,7 @@ Same pipeline, **same preset** as the prior run (a delta across presets is meani
 | `08-local-seo-audit.md` | `local-seo-auditor` | Local |
 | `09-ai-visibility.md` | `ai-footprint-auditor` | `ai_visibility` on |
 | `10-compliance.md` | `report-assembler` ← pm-brand-auditor compliance JSON | regulated vertical / `compliance: true` |
-| `audit-deck.html` | deck step ← `audit-deck-template.html` | `deck: true` |
+| `audit-deck.html` — all 11 tabs | deck step ← `audit-deck-template.html` | **always** (default; `deck: false` skips) |
 
 **Canonical intermediate paths (workflow-enforced):** raw structured outputs snapshot to `data/<agent>-<instance>.json`; screenshots/artifacts to `evidence/perf/` (shared Lighthouse, §2.2) · `evidence/seo/` · `evidence/local/` · `evidence/adlibs/` · `evidence/social/`; Tier-2 export drops in `inputs/` (never `data/`); re-audit archives in `archive/<date>/`. Every report follows `report-template.md` and respects the §1 capture discipline. `pm-scorer` also appends one anonymised row per run to the repo-root `benchmarks.md`.
 
@@ -252,6 +252,7 @@ Same pipeline, **same preset** as the prior run (a delta across presets is meani
 - [ ] **Data Gaps & tooling blocks section present** (even if empty) — `null`/`data_gap` reads never presented as zeros or weaknesses
 - [ ] Score `/100` + breakdown + Top-5 + Next-Actions present; examples niche-specific
 - [ ] Every §5 manifest file expected for this preset + flags exists
+- [ ] **Client deck built** — `audit-deck.html` present with all 11 tabs (panels), scorecard rows matching the active preset's category set, and zero unresolved `{{` tokens (unless `deck: false`)
 - [ ] *(SEO/Local runs)* cat 11/12 internal rubric weights each sum to 100 (`presets.json → internal_rubrics`); pass-through math checked
 - [ ] *(SEO/Local runs)* every SERP claim carries query + date + market + band; no exact ranks
 - [ ] *(SEO/Local runs)* `data_tier` declared in every output; no over-tier claims (§1.1)

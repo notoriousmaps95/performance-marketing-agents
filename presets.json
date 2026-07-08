@@ -1,0 +1,60 @@
+{
+  "_comment": "CANONICAL source for weighting presets, business-type mapping, and module flags. If audit-sop.md §2 or README ever disagree with this file, THIS FILE WINS. Every weights vector must sum to 100 — the brand-audit workflow validates this at Phase 0 and pm-scorer re-validates before scoring.",
+
+  "categories": {
+    "1": "Brand foundation & positioning",
+    "2": "Organic social presence & content",
+    "3": "Paid media — Meta (FB/IG)",
+    "4": "Paid media — Google + YouTube",
+    "5": "Paid media — TikTok & emerging",
+    "6": "Paid media — LinkedIn",
+    "7": "Creative & messaging strategy",
+    "8": "Funnel & conversion signals",
+    "9": "Audience & targeting signals",
+    "10": "Competitive share of voice",
+    "11": "Organic search (SEO)",
+    "12": "Local search"
+  },
+
+  "presets": {
+    "DTC":     { "weights": { "1": 10, "2": 15, "3": 15, "4": 12, "5": 8, "6": 5,  "7": 10, "8": 10, "9": 5, "10": 10 } },
+    "B2B":     { "weights": { "1": 10, "2": 12, "3": 8,  "4": 15, "5": 4, "6": 15, "7": 8,  "8": 12, "9": 6, "10": 10 } },
+    "DTC+SEO": { "weights": { "1": 9,  "2": 13, "3": 13, "4": 10, "5": 7, "6": 4,  "7": 8,  "8": 9,  "9": 4, "10": 8, "11": 15 } },
+    "B2B+SEO": { "weights": { "1": 9,  "2": 10, "3": 7,  "4": 13, "5": 3, "6": 13, "7": 7,  "8": 10, "9": 5, "10": 8, "11": 15 } },
+    "Local":   { "weights": { "1": 8,  "2": 10, "3": 10, "4": 10, "5": 4, "6": 2,  "7": 8,  "8": 12, "9": 4, "10": 6, "11": 12, "12": 14 } }
+  },
+
+  "business_type_map": {
+    "_comment": "pm-brand-auditor's classifier emits one of these three types. Map to a preset via base_preset, or seo_variant when the seo_variant_rule is met. The orchestrator always confirms the recommended preset with the user before weights lock.",
+    "ecom":             { "base_preset": "DTC",   "seo_variant": "DTC+SEO" },
+    "leadgen_national": { "base_preset": "B2B",   "seo_variant": "B2B+SEO" },
+    "local":            { "base_preset": "Local", "seo_variant": "Local" }
+  },
+
+  "seo_variant_rule": "Recommend the +SEO variant when BOTH hold: (a) the site has meaningful indexable content/category depth (blog, guides, or 20+ collection/service pages found in the crawl sample), AND (b) organic search is plausibly a top-2 traffic channel for the brand or its category per public estimators. Local always includes the SEO module. The user confirms regardless.",
+
+  "internal_rubrics": {
+    "_comment": "Sub-module rubrics — pass-through categories. Each must sum to 100.",
+    "seo_auditor_cat11": { "technical": 20, "onpage": 25, "schema": 15, "content": 15, "internal_linking": 10, "authority": 10, "aeo": 5 },
+    "local_seo_auditor_cat12": { "gbp": 25, "reviews": 20, "local_onpage": 20, "nap_citations": 15, "local_schema": 10, "local_authority": 10 }
+  },
+
+  "modules": {
+    "_comment": "Flag-gated modules. Appendix modules NEVER change the /100 — they produce labelled sub-scores/appendix sections (SOP §2.4). baked_in extensions have no flag: they are standing method steps inside the named agent.",
+    "ai_visibility":  { "default": true,  "agent": "ai-footprint-auditor", "output": "09-ai-visibility.md", "scored": "appendix /10 sub-score — never in the /100" },
+    "compliance":     { "default": "auto", "note": "auto = ON when pm-brand-auditor detects a regulated vertical (vape/nicotine, alcohol, supplements, CBD, gambling, finance, pharma); extends pm-brand-auditor + a policy-matrix section", "output": "10-compliance.md" },
+    "influencer":     { "default": false, "note": "deep creator/UGC sweep — paid-partnership labels, collab inventory, affiliate detection; light signals are always captured by social-content-auditor", "output": "section in 02 + 04" },
+    "marketplace":    { "default": false, "note": "Amazon storefront/reviews/brand-store audit for ecom brands; extends pm-brand-auditor + competitor-intel", "output": "section in 01 + snapshot row" },
+    "seo_depth":      { "default": "standard", "options": ["standard", "hobo"], "note": "hobo = run the global hobo-auditor/hobo-strategic-auditor alongside seo-auditor for flagship engagements (richer 07)" },
+    "strategy_depth": { "default": "standard", "options": ["standard", "full"], "note": "full = chain global agents after dtc-strategist: offer-ladder-builder + funnel-architect -> 06b, gtm-rollout-planner -> 06c, market-wedge-finder folded into 06b when 2+ competitors" },
+    "deck":           { "default": true,  "note": "STANDARD output — Finalise phase builds runs/<slug>/audit-deck.html from audit-deck-template.html with all 11 tabs. Pass deck:false only to skip for cheap/internal shakedown runs." },
+    "mode":           { "default": "audit", "options": ["audit", "reaudit"], "note": "reaudit = delta run — pm-scorer also writes 00b-delta-report.md comparing against the previous run's 00 + run-config.json" }
+  },
+
+  "baked_in_extensions": {
+    "pm-brand-auditor": ["reputation & reviews sweep (all presets — Trustpilot/Google/Reddit sentiment + §3.7 velocity)", "measurement-maturity scan (pixels/tags from page source)", "email/SMS capture deep teardown"],
+    "ad-teardown":      ["offer-history probe via Wayback Machine (brand instance only, ~4 snapshots / 12 mo)"],
+    "traffic-sov":      ["share-of-search trend (Google Trends branded-query curves, brand vs competitors)"],
+    "pm-scorer":        ["benchmarks.md append (anonymised per-category metrics per run)"]
+  }
+}

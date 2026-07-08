@@ -12,7 +12,7 @@ A **reusable, public-data-only brand audit + digital-marketing-strategy system**
 - **`.claude/workflows/brand-audit.js`** — the executable orchestrator: encodes the phase graph, §7.1 concurrency tiers, 2-round verifier loop, and manifest check.
 - **`.claude/agents/`** — 12 project subagents (roster below); AI-visibility, deep-SEO, and the strategy chain reuse **global** agents (`ai-footprint-auditor`, `hobo-auditor`, `offer-ladder-builder`, `funnel-architect`, `gtm-rollout-planner`, `market-wedge-finder`).
 - **`benchmarks.md`** — cross-run benchmark rows appended by `pm-scorer` (anonymised: vertical, not brand).
-- **`audit-deck-template.html`** — client-deck skeleton; filled on `deck: true` runs.
+- **`audit-deck-template.html`** — client-deck skeleton; filled into `runs/<slug>/audit-deck.html` (all 11 tabs) on **every run by default** (`deck: false` to skip).
 - **`runs/<brand-slug>/`** — per-brand outputs: numbered reports, `run-config.json`, `data/` (structured JSON snapshots), `evidence/` subfolders, `inputs/` (Tier-2 exports), `archive/<date>/` (re-audit history).
 
 ## RUN PROTOCOL (how every audit starts)

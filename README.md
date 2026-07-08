@@ -4,7 +4,7 @@ A **reusable, public-data-only brand audit + digital-marketing-strategy system**
 
 ## What it produces
 
-Eight core output files per brand run, plus preset/flag-gated extras (full owner manifest: `audit-sop.md` §5):
+Eight core reports **plus a client-facing HTML deck (all 11 tabs)** per brand run, plus preset/flag-gated extras (full owner manifest: `audit-sop.md` §5):
 
 | File | Contents |
 |---|---|
@@ -22,7 +22,7 @@ Eight core output files per brand run, plus preset/flag-gated extras (full owner
 | `10-compliance.md` *(regulated verticals)* | Platform ad-policy matrix (vape/alcohol/supplements/finance…), age-gate/consent audit |
 | `00b-delta-report.md` *(`mode: reaudit`)* | Score movement vs the prior run + prior Top-5 completion check |
 | `06b` / `06c` *(`strategy_depth: full`)* | Offer ladder + funnel math · week-by-week 90-day rollout |
-| `audit-deck.html` *(`deck: true`)* | Client-facing slide deck from `audit-deck-template.html` |
+| `audit-deck.html` *(default on; `deck: false` skips)* | Client-facing slide deck — all 11 tabs — from `audit-deck-template.html` |
 
 ## How to use
 
@@ -119,7 +119,7 @@ Reused **global** agents (flag-gated): `ai-footprint-auditor` (AI visibility, `0
 
 ## Optional deliverables
 
-- **Client deck** — `deck: true` fills [`audit-deck-template.html`](audit-deck-template.html) (self-contained, keyboard nav, print-to-PDF) from the executive summary → `runs/<brand-slug>/audit-deck.html`.
+- **Client deck** — built by **default** every run (pass `deck: false` to skip); fills [`audit-deck-template.html`](audit-deck-template.html) (self-contained, all 11 tabs, keyboard nav, print-to-PDF) from the executive summary → `runs/<brand-slug>/audit-deck.html`.
 - **Hand-off zip** — `cd runs && zip -r <brand-slug>.zip <brand-slug> -x "<brand-slug>/data/*" "<brand-slug>/archive/*"`.
 - **Proposal** — a follow-on doc built from `00` + `06` (pattern: `runs/potenza-motor-works/proposal.md`); not workflow-generated.
 

@@ -10,7 +10,7 @@ export const meta = {
     { title: 'Compare', detail: 'content-comparator -> 04' },
     { title: 'Verify', detail: 'audit-verifier + Pass-2 recapture, max 2 rounds' },
     { title: 'Score & strategy', detail: 'pm-scorer -> 00 (+00b), dtc-strategist -> 06 (+chain 06b/06c)' },
-    { title: 'Finalise', detail: 'optional deck + manifest check vs SOP §5/§6' },
+    { title: 'Finalise', detail: 'deck (default on, all 11 tabs) + manifest check vs SOP §5/§6' },
   ],
 }
 
@@ -207,7 +207,8 @@ if (MOD.strategy_depth === 'full') {
 
 // ---------- Phase 8 — Finalise ----------
 phase('Finalise')
-if (MOD.deck) await agent(`Build ${RUN}/audit-deck.html: copy audit-deck-template.html and replace every {{...}} token with real values from ${RUN}/00-executive-summary.md (+ 06 for next steps). Fill all 12 category rows only if the preset has them (preset ${A.preset}); keep the method-honesty slide (data_tier ${A.data_tier}, public-only, preset non-comparability). Invent nothing; unresolved tokens are a bug — grep for "{{" before finishing.`,
+// Deck is a STANDARD deliverable (presets.json modules.deck default true) — build unless the caller passed deck:false.
+if (MOD.deck) await agent(`Build ${RUN}/audit-deck.html — the client-facing visual deck. Copy audit-deck-template.html verbatim, then replace every {{...}} token with real values from ${RUN}/00-executive-summary.md (+ ${RUN}/06-digital-marketing-strategy.md for the 90-day slide). KEEP all 11 tabs/panels — Title · TL;DR · Scorecard · Competitive · Strengths · Gaps · Actions 1–3 · Actions 4–5 · Method · 90-Day · Appendix — never delete a panel (the Method-honesty slide is mandatory). The active preset is ${A.preset}, which scores ${SEO_ON ? (LOCAL ? '12' : '11') : '10'} categories: DELETE the scorecard rows AND their radar data-short entries for any category this preset does not weight, so the bars and 12-axis radar render with no empty spokes. Re-tint via --accent/--accent2/--accent-soft only — never touch band colours or thresholds. Keep data_tier ${A.data_tier}, the public-only disclaimer, and the preset-${A.preset} non-comparability note. Invent nothing — an honest data_gap beats a fabricated value; estimates keep their (est.) label. Unresolved tokens are a bug: before returning, grep the finished file for "{{" (must be zero) and confirm all 11 <section class="panel"> blocks are present.`,
   { label: 'deck-builder', phase: 'Finalise', effort: 'low' })
 
 const CHECK_SCHEMA = { type: 'object', required: ['ok', 'missing', 'warnings'], properties: { ok: { type: 'boolean' }, missing: { type: 'array' }, warnings: { type: 'array' } }, additionalProperties: true }
@@ -222,7 +223,7 @@ if (MOD.strategy_depth === 'full') expected.push('06b-offer-and-funnel.md', '06c
 if (MOD.deck) expected.push('audit-deck.html')
 
 const check = await agent(
-  `Manifest + quality-gate check for ${RUN}/ (SOP §5/§6). 1) Verify each of these files exists and is non-trivial (>500 bytes): ${JSON.stringify(expected)} — list absences in missing[]. 2) In 00-executive-summary.md check: the preset name "${A.preset}" is printed beside the score; a "Data gaps" section exists; the scorecard TOTAL weight is 100; data_tier ${A.data_tier} is stated. 3) Spot-check one report for unresolved "{{" tokens. Put soft issues in warnings[]. Return { ok, missing, warnings }.`,
+  `Manifest + quality-gate check for ${RUN}/ (SOP §5/§6). 1) Verify each of these files exists and is non-trivial (>500 bytes): ${JSON.stringify(expected)} — list absences in missing[]. 2) In 00-executive-summary.md check: the preset name "${A.preset}" is printed beside the score; a "Data gaps" section exists; the scorecard TOTAL weight is 100; data_tier ${A.data_tier} is stated. 3) Spot-check one report for unresolved "{{" tokens. ${MOD.deck ? `4) In audit-deck.html: confirm 11 tab buttons AND 11 <section class="panel"> blocks are present (all tabs) and there are ZERO unresolved "{{" tokens — a missing panel or leftover token is a missing[] entry ("audit-deck.html incomplete: …"), not a soft warning.` : ''} Put soft issues in warnings[]. Return { ok, missing, warnings }.`,
   { label: 'manifest-check', phase: 'Finalise', schema: CHECK_SCHEMA, effort: 'low' },
 )
 const gaps = [brand, ...socials, ...ads, seo, localSeo, ...competitors, comparison].filter(Boolean).reduce((n, r) => n + ((r.data_gaps && r.data_gaps.length) || 0), 0)

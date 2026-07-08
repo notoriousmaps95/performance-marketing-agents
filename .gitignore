@@ -5,8 +5,10 @@
 # Brand run outputs (keep locally, not in repo)
 runs/
 
-# Large trace/evidence files
-**/*.json
+# Large trace/evidence files — per-brand run outputs only.
+# Do NOT blanket-ignore *.json: presets.json (canonical weights/flags) and any tracked
+# config MUST ship so the system runs for anyone who clones the repo. `runs/` above already
+# ignores every per-brand data/*.json and run-config.json, so nothing client-specific leaks.
 **/*.json.gz
 evidence/
 
