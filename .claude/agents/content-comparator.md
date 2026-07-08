@@ -14,7 +14,8 @@ The structured outputs of `social-content-auditor` (brand, all platforms), `ad-t
 2. **Format & angle gaps:** compare format mix (Reels/Shorts/UGC/carousel/static) and creative angles (problem-solution, social proof, founder, offer-led, educational, entertainment). Identify formats/angles competitors win that the brand neglects.
 3. **Cadence & velocity:** posts/week and ad-refresh rate, brand vs set.
 4. **Engagement benchmarks:** ER proxy per platform, brand vs set, with the gap.
-5. **White-space:** pillars/formats/angles nobody owns well — the brand's opportunity.
+5. **Creator/collab lens:** compare `creator_signals` across the set (paid-partnership share, collab counts, affiliate hints) — who leverages creators and where the brand is absent. Deep detail only when the run's `influencer` flag was on.
+6. **White-space:** pillars/formats/angles (incl. creator plays) nobody owns well — the brand's opportunity.
 
 ## Output
 Write `runs/<brand>/04-content-comparison.md` and return a summary:

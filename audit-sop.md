@@ -11,8 +11,9 @@
 | Competitors (2–4) | ✅ | Or identify via SERP + market overlap, confirm before deep work |
 | Target market + language | ✅ | Ad libraries & SERPs are geo-specific |
 | Social handles | ⬜ | Discover if not provided |
-| Weighting preset | ✅ | `DTC` (default) · `B2B` · `DTC+SEO` · `B2B+SEO` · `Local` — see §2 |
-| Business type | ✅ | `detect` (default) · `ecom` · `b2b` · `local`. On `detect`, `pm-brand-auditor` classifies in Phase 1 and **recommends** a preset; the orchestrator confirms with the user before locking weights |
+| Weighting preset | ✅ | `DTC` (default) · `B2B` · `DTC+SEO` · `B2B+SEO` · `Local` — canonical weights live in **`presets.json`** (§2). Locked before the workflow launches; the workflow refuses `detect` |
+| Business type | ✅ | `detect` (default) · `ecom` · `leadgen_national` · `local`. On `detect`, `pm-brand-auditor` runs a **classification-only pass before the workflow launches** (Phase 0), maps to a preset via `presets.json → business_type_map` (incl. the +SEO-variant rule), and the orchestrator confirms with the user before locking weights |
+| Module flags | ⬜ | `presets.json → modules` defaults apply unless overridden: `ai_visibility` (on) · `compliance` (auto — regulated verticals) · `influencer` · `marketplace` · `seo_depth` · `strategy_depth` · `deck` · `mode: audit\|reaudit` (§4.3) |
 | SEO data tier | ✅ | `0` (public-only, default) · `1` (+GSC) · `2` (+exports) — see §1.1. Recorded as `data_tier` in every output |
 | GSC property | ⬜ | Tier 1 only — **user-owned property only**, via `mcp__gsc__*` |
 | Exports dir | ⬜ | Tier 2 only — Ahrefs/Semrush CSVs + Screaming Frog exports dropped in `runs/<brand>/inputs/` |
@@ -37,6 +38,11 @@ Create `runs/<brand>/` and capture all evidence (screenshots, ad URLs, counts) w
 | SERP position bands | **WebSearch** — exact query + date + market | band per query: `top3` / `top10` / `top50` / `absent` — never exact ranks (§3.5) |
 | GBP / Maps public view *(Local runs)* | Browser screenshot of the **named-place** listing (never Maps keyword search) | claimed status, primary category, rating + review count, photos, hours, booking links |
 | Directories & review platforms *(Local runs)* | **WebSearch** on brand + phone/address fragments | NAP consistency matrix, citation presence, cross-platform review counts |
+| AI answer surfaces (brand recognition, accuracy, citations) | **WebSearch/WebFetch** against Perplexity, Google AI Overviews, Bing Copilot (`ai-footprint-auditor` prompt battery) | per-prompt capture with date; recognition/accuracy/citation verdicts — labelled spot-checks, never "AI rankings" |
+| Offer & promo history (12 mo) | **Wayback Machine** `web.archive.org` snapshots of homepage + key collection page (§3.8) | hero offer/banner per snapshot, ~4 points/yr → discount cadence, positioning drift |
+| Share of search (branded-demand trend) | **Google Trends** brand vs competitor branded queries, market-filtered (§3.9) | relative curves + brand's share of the summed set — always `(Google Trends, est.)` |
+| Reputation & reviews (all presets) | Trustpilot / Google reviews / Reddit + niche forums via WebSearch (§3.7 velocity proxy generalised) | rating, count, velocity, sentiment themes, response behaviour — dated |
+| Measurement maturity | Page-source scan of fetched HTML (pixels/tags: GA4, Meta/TikTok/Pinterest pixels, GTM, ESP/SMS, attribution tools) | detected stack list — capability signal, feeds cats 3/8 + strategy |
 | *(Optional)* first-party search data | `mcp__gsc__*` | only if brand is a user-owned property (Tier 1, §1.1) |
 
 **Capture discipline:** every score is backed by a dated artifact. Estimates are labelled `(est.)`. Never present a proxy as an account-verified number.
@@ -58,6 +64,8 @@ The SEO module (cat 11) and local module (cat 12) run at one of three data tiers
 
 Up to twelve categories, each scored **0–100 internally**, then multiplied by its weight and summed. Five weighting presets; pick one at setup. `DTC` and `B2B` are the legacy presets (unchanged, 10 categories). The `+SEO` presets add cat 11; `Local` adds cats 11 + 12.
 
+> **Canonical source: `presets.json`** — weights, business-type→preset mapping, +SEO-variant rule, and module flags. If the table below ever disagrees with `presets.json`, **presets.json wins**. The workflow validates every preset sums to 100 at Phase 0; `pm-scorer` re-validates before scoring.
+
 | # | Category | DTC | B2B | DTC+SEO | B2B+SEO | Local |
 |---|---|---:|---:|---:|---:|---:|
 | 1 | Brand foundation & positioning | 10 | 10 | 9 | 9 | 8 |
@@ -74,7 +82,7 @@ Up to twelve categories, each scored **0–100 internally**, then multiplied by 
 | 12 | Local search | — | — | — | — | 14 |
 | | **Total** | **100** | **100** | **100** | **100** | **100** |
 
-**Roll-up:** `Final = Σ (category_score/100 × weight)`. Validate weights sum to 100 before scoring.
+**Roll-up:** `Final = Σ (category_score/100 × weight)`. Weights are validated against `presets.json` (sum = 100) at workflow Phase 0 and re-checked by `pm-scorer` before scoring.
 
 **Bands:** ≥85 **Strong** · 70–84 **Targeted fixes** · <70 **Rework**.
 
@@ -101,16 +109,16 @@ For each, capture the listed evidence, then score against the guide.
 **6. Paid media — LinkedIn** — ad presence + organic posts (brand/partnership/talent/thought-leadership signals).
 `90–100` active ads + consistent organic (B2B) · `70–89` organic presence · `50–69` dormant page · `<50` none. *(Low DTC weight — keep proportionate.)*
 
-**7. Creative & messaging strategy** — hook quality, UGC vs polished mix, offer strategy (discount/bundle/guarantee/urgency), seasonal cadence, visible A/B-test signals.
+**7. Creative & messaging strategy** — hook quality, UGC vs polished mix, offer strategy (discount/bundle/guarantee/urgency), seasonal cadence (cross-checked against the §3.8 Wayback offer-history probe — discount cadence + positioning drift over 12 mo), visible A/B-test signals.
 `90–100` strong hooks, diverse formats, clear offer ladder, testing evident · `70–89` competent, limited testing · `50–69` repetitive/weak hooks · `<50` no coherent creative strategy.
 
-**8. Funnel & conversion signals** — landing pages, offer clarity, email/SMS capture, retargeting evidence (pixel/ad presence), reviews & social proof, checkout UX, **LP speed** (Lighthouse/CWV).
+**8. Funnel & conversion signals** — landing pages, offer clarity, **email/SMS capture depth** (popup offer/timing/fields, SMS prompt, footer capture, visible welcome-flow signals), **measurement maturity** (page-source pixel/tag scan: GA4, Meta/TikTok pixels, GTM, ESP/SMS, attribution tools — a weak pixel stack caps everything paid), retargeting evidence, **reviews & reputation** (all presets: Trustpilot/Google/Reddit sweep + §3.7 velocity — not just on-site widgets), checkout UX, **LP speed** (Lighthouse/CWV).
 `90–100` fast LPs, strong capture, proof everywhere, frictionless checkout · `70–89` good with gaps · `50–69` slow LPs / weak capture / thin proof · `<50` broken funnel.
 
 **9. Audience & targeting signals** — inferred personas, ad targeting cues (language, casting, placements), influencer/partnership footprint.
 `90–100` clear multi-persona targeting + active partnerships · `70–89` single clear persona · `50–69` vague · `<50` no discernible audience strategy.
 
-**10. Competitive share of voice** — ad volume vs competitors, content velocity, estimated traffic/channel split, SERP/ad overlap on core terms. On `Local` runs, `traffic-sov` additionally records **local-pack SOV** (pack membership per core city-modifier term — collected once here, consumed by cat 12).
+**10. Competitive share of voice** — ad volume vs competitors, content velocity, estimated traffic/channel split, SERP/ad overlap on core terms, plus **share-of-search** (§3.9 — Google Trends branded-demand curves, brand vs set, the leading SOV indicator). On `Local` runs, `traffic-sov` additionally records **local-pack SOV** (pack membership per core city-modifier term — collected once here, consumed by cat 12).
 `90–100` leads the set on ad volume + traffic + velocity · `70–89` competitive · `50–69` trailing · `<50` invisible vs competitors.
 
 **11. Organic search (SEO)** — *(SEO presets + Local only)* scored by `seo-auditor` on its own internal /100 rubric (Technical & crawlability 20 · On-page money pages 25 · Schema & entity 15 · Content quality & topical 15 · Internal linking 10 · Authority proxies 10 · AEO/AI visibility 5 — sums to 100). The category score is a **pass-through** of that roll-up; full detail lives in `07-seo-audit.md`.
@@ -125,10 +133,19 @@ Three seams between the SEO modules and existing categories — owners are fixed
 |---|---|---|
 | Schema | `seo-auditor` owns the sitewide schema matrix (Organization/Product/Breadcrumb/FAQ); `local-seo-auditor` owns only LocalBusiness-subtype completeness | `seo-auditor` passes its JSON-LD inventory + site-footer NAP to `local-seo-auditor` — pages are never fetched twice |
 | Lighthouse / speed | cat 8 (`pm-brand-auditor`) keeps **LP speed** as a conversion signal; cat 11 owns **sitewide CWV** across 3 templates | one Lighthouse trace per URL per pass, shared via `evidence/perf/` (§7.2) |
-| SERP visibility | cat 10 (`traffic-sov`) owns overall + local-pack SOV; cat 11 owns organic-quality and per-page rank bands | local-pack SOV is collected once by `traffic-sov` and consumed by `local-seo-auditor` |
+| SERP visibility | cat 10 (`traffic-sov`) owns overall + local-pack SOV; cat 11 owns organic-quality and per-page rank bands | local-pack SOV is collected once by `traffic-sov` **in the Phase-1 text tier** and consumed downstream by `local-seo-auditor` (browser tier) and `competitor-intel` — the producer always runs before its consumers (§4) |
 
 ### 2.3 Local preset lens (codifies the ritam-wedding-venue improvisation)
 Under the `Local` preset: cat 8 is read as **"Lead capture & booking funnel"** (inquiry forms, click-to-call, WhatsApp, booking widgets, response-time signals — not cart/checkout), and cats 3/4 KPIs are read as leads/calls/bookings rather than purchases. Local sub-types: **brick-and-mortar** · **service-area business (SAB)** · **hybrid** — SABs skip embedded-map and physical-address checks (`areaServed` language instead).
+
+### 2.4 Appendix modules (non-scored — the /100 is never touched)
+Flag-gated modules (`presets.json → modules`) report **outside** the weighted score: each produces a labelled sub-score or findings section appended to the executive summary plus its own file. They feed the strategy and the verifier, never the scorecard — so preset comparability (hard rule) is preserved. A preset v2 that weights any module is minted only on explicit request.
+| Module | Output | Sub-score | Notes |
+|---|---|---|---|
+| **AI visibility** (`ai_visibility`, default on) | `09-ai-visibility.md` | /10 (recognition · accuracy · citation · narrative control) | `ai-footprint-auditor` prompt battery vs brand + competitors; findings are dated spot-checks, never "AI rankings" |
+| **Compliance** (`compliance: auto`) | `10-compliance.md` | pass/flag matrix | Regulated verticals (vape/nicotine, alcohol, supplements, CBD, gambling, finance, pharma): platform ad-policy matrix (what Meta/Google/TikTok/LinkedIn allow for this vertical in this market, verified via WebSearch with date), age-gate, cookie/consent, disclaimer audit. **Hard constraint on the strategy's channel plan** — e.g. Meta prohibits vape ads, so cat-3 weakness is re-read as a policy ceiling, not negligence |
+| **Influencer/creator** (`influencer`) | section in `02` + `04` | — | Deep sweep: paid-partnership labels, collab inventory, affiliate detection (light signals always captured by `social-content-auditor`) |
+| **Marketplace** (`marketplace`) | section in `01` + snapshot row | — | Amazon storefront/ratings/review-velocity/brand-store signals, brand vs competitors |
 
 ---
 
@@ -161,42 +178,87 @@ Establish the **canonical Name/Address/Phone triple** from the site contact page
 
 ### 3.7 Review-velocity proxy
 From the public listing sorted by newest: take the dates of the most recent ~10 reviews → compute reviews/month. Flag a dry spell of **3+ weeks** with no new review. Record owner-response rate over the same 10. Cross-check the site's `aggregateRating` schema against the visible GBP count — a mismatch is a verifier flag.
+**Generalised to all presets:** for non-local brands apply the same method to the dominant public review surface (Trustpilot / Google reviews / marketplace listing) and sweep Reddit + niche forums for sentiment themes — rating, count, velocity, response behaviour, all dated.
+
+### 3.8 Offer-history probe (Wayback)
+`web.archive.org` snapshots of the homepage (+ one key collection/offer page) at ~4 points across the trailing 12 months: record the visible hero offer/banner per snapshot → discount cadence (always-on vs seasonal), promo calendar shape, positioning drift. Label every finding `(Wayback, <snapshot dates>)`. Sparse snapshot coverage is a `data_gap`, never evidence of "no promos". Run on the **brand only** (competitor Wayback probes only if a specific verifier flag demands one).
+
+### 3.9 Share-of-search proxy
+Google Trends (12–24 mo, market-filtered) on each brand's **branded query**: capture the relative curves and compute the brand's share of the summed set — share-of-search, the classic leading indicator of share-of-market. Always relative, labelled `(Google Trends, est.)`, never absolute volumes. A brand term too low-volume to register is a `data_gap` (common for small locals — say so rather than reporting 0%).
 
 ---
 
-## 4. Run process (7 phases)
-Executed as a multi-agent Workflow orchestrating the `.claude/agents/` roster.
+## 4. Run process
+Executed by the **`brand-audit` workflow** (`.claude/workflows/brand-audit.js`), which orchestrates the `.claude/agents/` roster and *encodes* this section: the phase graph, the §7.1 concurrency tiers, the §4.1 two-pass loop, and the §5 manifest. A run launches with one prompt (see CLAUDE.md run protocol) — it is never improvised phase-by-phase.
 
-1. **Brand teardown** — `pm-brand-auditor` + `ad-teardown`(brand) + `social-content-auditor`(brand ×4) → `01-brand-audit.md`. `pm-brand-auditor`'s **first output is the business-type classification** (`ecom` / `leadgen_national` / `local` + local sub-type) with a recommended preset — the orchestrator **confirms the preset with the user before locking weights** (weights affect everything downstream).
-2. **Social deep-dive** — `social-content-auditor` per platform → `02-social-audit.md`
-3. **SEO audit** *(SEO presets + Local)* — `seo-auditor`(brand) → `07-seo-audit.md`; when `Local`, `local-seo-auditor` runs **after it** (consuming its schema matrix + footer NAP) → `08-local-seo-audit.md`
-4. **Competitor audit** — `competitor-intel` per competitor (wraps brand-auditor + ad + social lenses; + bounded SEO snapshot on SEO/Local runs) → `03-competitor-audit.md`
-5. **Content comparison** — `content-comparator` (brand vs competitors) → `04-content-comparison.md`
-6. **Ads teardown** — `ad-teardown` per library, brand + competitors; `traffic-sov` for share of voice (+ local-pack SOV when `Local`) → `05-ads-teardown.md`
-7. **Synthesis** — `audit-verifier` challenges claims (incl. SEO/local challenge types) → `pm-scorer` computes `/100` → `dtc-strategist` writes strategy → `00-executive-summary.md` + `06-digital-marketing-strategy.md`
+**Phase 0 — classify & lock the preset (before the workflow launches).** On `business type = detect`, run `pm-brand-auditor` inline in **classification-only mode**: business type (`ecom` / `leadgen_national` / `local` + local sub-type) + regulated-vertical check. Map to a preset via `presets.json → business_type_map` (+SEO-variant rule), **confirm with the user**, then invoke the workflow with the locked preset and flags. The workflow refuses to start on `preset: detect` or any missing required input.
+
+Inside the workflow:
+1. **Text tier (parallel)** — `traffic-sov` (traffic, SERP SOV, §3.9 share-of-search; + local-pack SOV when `Local`) · `social-content-auditor` ×4 (brand) · `ai-footprint-auditor` (when `ai_visibility` on → `09-ai-visibility.md`). No browser work in this wave.
+2. **Browser tier (strictly serial — §7.1, heartbeat-logged)** — `pm-brand-auditor` (full teardown incl. §3.7 reputation sweep, measurement scan, email/SMS depth, compliance signals) → `ad-teardown` ×4 (brand; the Meta instance also runs the §3.8 offer-history probe) → `seo-auditor` *(SEO presets + Local — consumes the brand auditor's homepage trace)* → `local-seo-auditor` *(Local — consumes seo-auditor's schema matrix + footer NAP and traffic-sov's `local_pack_sov`)* → `competitor-intel` per competitor.
+3. **Assembly (parallel)** — `report-assembler` ×4 writes `01-brand-audit.md`, `02-social-audit.md`, `03-competitor-audit.md`, `05-ads-teardown.md` from the held structured outputs (`07`/`08`/`09` are written by their own agents; `10-compliance.md` assembled when the module is on).
+4. **Content comparison** — `content-comparator` → `04-content-comparison.md`.
+5. **Verify** — `audit-verifier` challenges claims (incl. SEO/local/AI-visibility/Wayback/share-of-search challenge types) → `must_fix_before_scoring`.
+6. **Pass 2 — targeted gap-fill (§4.1, hard cap 2 rounds)** — serial re-captures of flagged gaps using Pass-1 identifiers → re-verify.
+7. **Score & strategy** — `pm-scorer` computes `/100` + appendix sub-scores, appends the `benchmarks.md` row, and on `mode: reaudit` writes `00b-delta-report.md` (§4.3) → `dtc-strategist` writes `06-digital-marketing-strategy.md` → *(`strategy_depth: full`)* the strategy chain writes `06b`/`06c`.
+8. **Manifest check** — every preset/flag-expected file exists (§5) + the §6 quality gate passes; final summary logged.
 
 ### 4.1 Two-pass collection (default)
-- **Pass 1 — broad discovery.** Fan out all collection agents; capture what's reachable AND record the *identifiers* needed for precision: ad-library **advertiser IDs** + **page IDs**, exact social handles + channel IDs, confirmed domains. Anything blocked returns `null` + a `data_gap` — never a guessed number.
-- **Pass 2 — targeted gap-fill.** Driven by `audit-verifier`'s `must_fix_before_scoring` list: re-capture only the flagged gaps using the Pass-1 identifiers, in **clean, serialized browser sessions** (see §7). SEO/local gaps (blocked GBP reads, failed Lighthouse traces, unverified schema claims) enter this loop like everything else. Loop Pass 2 until no high-severity flag remains or two consecutive rounds add nothing (loop-until-confidence). Only then does `pm-scorer` finalise.
+- **Pass 1 — broad discovery.** Fan out all collection agents; capture what's reachable AND record the *identifiers* needed for precision (§4.2): ad-library **advertiser IDs** + **page IDs**, exact social handles + channel IDs, confirmed domains, GBP named-place URLs. Anything blocked returns `null` + a `data_gap` — never a guessed number.
+- **Pass 2 — targeted gap-fill (hard cap: 2 rounds).** Driven by `audit-verifier`'s `must_fix_before_scoring` list: re-capture only the flagged gaps using the Pass-1 identifiers, in **clean, serialized browser sessions** (see §7). SEO/local gaps (blocked GBP reads, failed Lighthouse traces, unverified schema claims) enter this loop like everything else. Re-verify after each round. **After round 2, any surviving high-severity flag is force-footnoted as an unfillable `data_gap`**: it lands in the report's Data Gaps section, and `pm-scorer` scores the affected category conservatively on what IS verified — a blocked read is never scored as confirmed weakness (§7.4). The loop caps; delivery is never blocked.
+
+### 4.2 Structured-output conventions (the inter-agent contract)
+Every collection/synthesis agent returns structured JSON. Shared shapes, defined once here:
+- `evidence: [{ label, url_or_screenshot, date }]` — every claim links to one.
+- `data_gaps: [{ field, reason, tried[] }]` — the honest-null registry (§7.4); `reason` states *"tooling block — NOT zero/absent"* where true.
+- `identifiers: { page_id?, advertiser_id?, channel_id?, handle?, listing_url?, gsc_property? }` — identity keys discovered in Pass 1, recorded by **every collection agent** and reused verbatim in Pass 2. (This replaces any per-agent ad-hoc "metrics" store.)
+- `data_tier: 0|1|2` — echoed in every SEO/local output.
+- **Score field naming:** fixed-category agents return `catN_score_0_100` (e.g. `cat1_score_0_100`); instanced agents return `score_0_100` + `feeds_category` (e.g. ad-teardown/meta → `feeds_category: 3`).
+
+### 4.3 Re-audit mode (`mode: reaudit`)
+Same pipeline, **same preset** as the prior run (a delta across presets is meaningless — hard rule 9). Launch protocol first archives the prior `00–10` reports + `run-config.json` into `runs/<brand>/archive/<YYYY-MM-DD>/`; new outputs then overwrite in place (evidence/ and inputs/ persist). `pm-scorer` reads the newest archive and writes `00b-delta-report.md`: per-category score movement table, prior Top-5 action completion check, data gaps opened/closed, and a "what actually changed" narrative. This turns one-off audits into trackable engagements.
 
 ---
 
-## 5. Output manifest (`runs/<brand>/`)
-`00-executive-summary.md` (score + breakdown + Top 5) · `01-brand-audit.md` · `02-social-audit.md` · `03-competitor-audit.md` · `04-content-comparison.md` · `05-ads-teardown.md` · `06-digital-marketing-strategy.md` · `07-seo-audit.md` *(SEO presets + Local)* · `08-local-seo-audit.md` *(Local only)*. Plus: `inputs/` (Tier-2 export drops) · `evidence/seo/` and `evidence/local/` (SEO/local artifacts) · `evidence/perf/` (shared Lighthouse traces, §2.2). Every report follows `report-template.md` and respects the §1 capture discipline.
+## 5. Output manifest (`runs/<brand>/`) — every file has a fixed owner
+| Output | Owner (writer) | When |
+|---|---|---|
+| `run-config.json` | workflow Phase 0 | always — the intake snapshot (inputs, preset, flags, tier, date) |
+| `00-executive-summary.md` | `pm-scorer` | always |
+| `00b-delta-report.md` | `pm-scorer` | `mode: reaudit` (§4.3) |
+| `01-brand-audit.md` | `report-assembler` ← pm-brand-auditor JSON | always |
+| `02-social-audit.md` | `report-assembler` ← social-content-auditor ×4 JSON | always |
+| `03-competitor-audit.md` | `report-assembler` ← competitor-intel ×N JSON | always |
+| `04-content-comparison.md` | `content-comparator` | always |
+| `05-ads-teardown.md` | `report-assembler` ← ad-teardown ×4 + traffic-sov JSON | always |
+| `06-digital-marketing-strategy.md` | `dtc-strategist` | always |
+| `06b-offer-and-funnel.md` · `06c-90day-rollout.md` | strategy chain (global `offer-ladder-builder`/`funnel-architect`/`gtm-rollout-planner`) | `strategy_depth: full` |
+| `07-seo-audit.md` | `seo-auditor` | SEO presets + Local |
+| `08-local-seo-audit.md` | `local-seo-auditor` | Local |
+| `09-ai-visibility.md` | `ai-footprint-auditor` | `ai_visibility` on |
+| `10-compliance.md` | `report-assembler` ← pm-brand-auditor compliance JSON | regulated vertical / `compliance: true` |
+| `audit-deck.html` | deck step ← `audit-deck-template.html` | `deck: true` |
+
+**Canonical intermediate paths (workflow-enforced):** raw structured outputs snapshot to `data/<agent>-<instance>.json`; screenshots/artifacts to `evidence/perf/` (shared Lighthouse, §2.2) · `evidence/seo/` · `evidence/local/` · `evidence/adlibs/` · `evidence/social/`; Tier-2 export drops in `inputs/` (never `data/`); re-audit archives in `archive/<date>/`. Every report follows `report-template.md` and respects the §1 capture discipline. `pm-scorer` also appends one anonymised row per run to the repo-root `benchmarks.md`.
 
 ---
 
-## 6. Quality gate (before delivery)
-- [ ] Active weighting preset sums to 100; roll-up math checked
+## 6. Quality gate (before delivery — automated by the workflow's manifest-check phase)
+- [ ] Active preset validated against `presets.json` (sums to 100 — asserted at Phase 0, re-checked by `pm-scorer`); roll-up math reconciles
 - [ ] Every category score links to ≥1 dated artifact
-- [ ] All estimates labelled `(est.)`; no fabricated spend/ROAS
+- [ ] All figures carry the correct tier label — `(est.)` / `(GSC)` / `(Ahrefs export, <date>)` / `(Wayback, <dates>)` / `(Google Trends, est.)`; no fabricated spend/ROAS
 - [ ] All 4 platforms covered for brand + every competitor (social + ads)
-- [ ] `audit-verifier` flags resolved or footnoted
+- [ ] `audit-verifier` flags resolved — or **force-footnoted after the 2-round Pass-2 cap (§4.1)**, each appearing in the Data Gaps section
+- [ ] **Data Gaps & tooling blocks section present** (even if empty) — `null`/`data_gap` reads never presented as zeros or weaknesses
 - [ ] Score `/100` + breakdown + Top-5 + Next-Actions present; examples niche-specific
-- [ ] *(SEO/Local runs)* cat 11/12 internal rubric weights each sum to 100; pass-through math checked
+- [ ] Every §5 manifest file expected for this preset + flags exists
+- [ ] *(SEO/Local runs)* cat 11/12 internal rubric weights each sum to 100 (`presets.json → internal_rubrics`); pass-through math checked
 - [ ] *(SEO/Local runs)* every SERP claim carries query + date + market + band; no exact ranks
 - [ ] *(SEO/Local runs)* `data_tier` declared in every output; no over-tier claims (§1.1)
 - [ ] *(Local runs)* NAP consistency matrix present; GBP capture dated; local-pack findings labelled as city-modifier proxy
+- [ ] *(`ai_visibility` on)* `09` present with /10 sub-score + dated prompt-battery evidence; framed as spot-checks, never "AI rankings"; sub-score stays OUT of the /100
+- [ ] *(compliance on)* policy-matrix rows carry a source + date; channel plan respects policy ceilings
+- [ ] *(`mode: reaudit`)* delta uses the same preset as the prior run; prior reports archived before overwrite
 
 ---
 
@@ -207,9 +269,9 @@ Executed as a multi-agent Workflow orchestrating the `.claude/agents/` roster.
 Do **not** run all collection agents at flat parallelism. Browser-driven work collides on a shared Chrome instance (wrong-tab traces, half-loaded pages).
 | Tier | Agents | Concurrency |
 |---|---|---|
-| Text / WebSearch / RSS | traffic-sov (search part), seo-auditor + local-seo-auditor **WebSearch sub-work** (SERP bands, mentions, directories), synthesis, verifier | high (parallel) |
+| Text / WebSearch / RSS | **traffic-sov (entire agent — text-only, runs first in Phase 1)**, social-content-auditor text work, **ai-footprint-auditor**, seo-auditor + local-seo-auditor **WebSearch sub-work** (SERP bands, mentions, directories), report-assembler, synthesis, verifier | high (parallel) |
 | **Browser-dependent** | ad-teardown (all libraries), pm-brand-auditor + competitor-intel **Lighthouse/perf traces**, **seo-auditor Lighthouse + screenshots**, **local-seo-auditor Maps/GBP captures**, IG-grid screenshots | **serial (1–2 at a time)** |
-Never run two ad-library captures or two perf traces in the same browser concurrently. Within Phase 3, run `seo-auditor` → `local-seo-auditor` in that order (the latter consumes the former's site signals).
+Never run two ad-library captures or two perf traces in the same browser concurrently. Within the browser tier, run `seo-auditor` → `local-seo-auditor` in that order (the latter consumes the former's site signals). The `brand-audit` workflow enforces this table — the browser tier is a serial pipeline with a heartbeat `log` per capture, so a stall is visible (see CLAUDE.md runbook) and resumable.
 
 ### 7.2 Browser discipline
 - **One page per capture.** Create a fresh page, navigate, `wait_for` the real content selector, **assert the active-tab URL == target**, *then* screenshot / trace. (Fixes the "wrong-tab LCP" miss.)
@@ -230,8 +292,8 @@ Never run two ad-library captures or two perf traces in the same browser concurr
 ### 7.5 Engagement-rate when aggregators block
 Don't declare ER "not computable." Screenshot the profile grid (browser), read visible likes/comments on the latest ~12 posts, and compute the §3.1 proxy on that **real hand-sample** (state n + date).
 
-### 7.6 Verifier-driven re-capture (closes the loop)
-`audit-verifier` emits `must_fix_before_scoring`. Feed that list into Pass 2 (§4.1) as a targeted re-collection round — don't merely footnote high-severity flags; re-capture them, then re-score.
+### 7.6 Verifier-driven re-capture (closes the loop — capped)
+`audit-verifier` emits `must_fix_before_scoring`. Feed that list into Pass 2 (§4.1) as a targeted re-collection round — don't merely footnote high-severity flags on round 1; re-capture them, then re-score. **Hard cap: 2 rounds.** A flag that survives both rounds (e.g. a hard-blocked Maps read) is force-footnoted as an unfillable `data_gap`, reported in the Data Gaps section, and scored conservatively — the loop never deadlocks delivery.
 
 ### 7.7 Optional paid-data layer (removes most estimate-labelling)
 If keys are available: **SimilarWeb API** (traffic/channel/geo — replaces `(est.)` triangulation), **Meta Ad Library** stable advertiser URLs/API where category-eligible, **Semrush/Ahrefs** (paid keywords + ad copy). Record which figures are API-sourced vs estimated.
